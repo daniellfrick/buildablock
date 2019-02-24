@@ -42,38 +42,50 @@ def evaluate(gameState):
 
             scores = []
             for n in neighborhoods:
-                w_dis = distanceToWork(googleKey, (n['latitude'],n['longitude']), work_address)
+                score = {}
+
+                w_dis = distanceToWork(googleKey, (n['latitude'], n['longitude']), work_address)
                 d_w_d = gameState['desired_work_distance']
                 d_dis = gameState['distances']
                 dis = n['scores']
 
-                score = 10
+                score['total'] = 10
+                score['subscores'] = []
                 if w_dis > d_w_d:
-                    score = score - abs(math.log(2 * (w_dis - d_w_d + .1) / d_w_d))
+                    score['total'] = score['total'] - abs(math.log(2 * (w_dis - d_w_d + .1) / d_w_d))
 
                 for i in d_dis:
                     if dis[i] > d_dis[i]:
                         #print(dis[i])
                         #print(d_dis[i])
                         num = abs(d_dis[i] - 6) * abs(math.log((float(dis[i]) - d_dis[i] + .1)) / 3)
-                        score = score - num
+                        score['total'] = score['total'] - num
+                        score['subscores'].append((i, 10 - num))
+                    else:
+                        score['subscores'].append((i, 10))
                 scores.append((score, n['name']))
     else:
         neighborhoods = loadNeighborhoods()
 
         scores = []
         for n in neighborhoods:
+            score = {}
+
             d_dis = gameState['distances']
             dis = n['scores']
 
-            score = 10
+            score['total'] = 10
+            score['subscores'] = []
 
             for i in d_dis:
                 if dis[i] > d_dis[i]:
                     # print(dis[i])
                     # print(d_dis[i])
                     num = abs(d_dis[i] - 6) * abs(math.log((float(dis[i]) - d_dis[i] + .1)) / 3)
-                    score = score - num
+                    score['total'] = score['total'] - num
+                    score['subscores'].append((i, 10 - num))
+                else:
+                    score['subscores'].append((i, 10))
             scores.append((score, n['name']))
     return scores
 
@@ -137,7 +149,7 @@ for x in place_result['results']:
 
 #print(distanceToWork(googleKey, (32.981098, -96.761414), "1380 W Campbell Rd, Richardson, TX 75080"))
 
-zillowKey = "X1-ZWz1gxbgzsa617_26nu3"
+"""zillowKey = "X1-ZWz1gxbgzsa617_26nu3"
 
 #r = requests.get("http://www.zillow.com/webservice/GetRegionChildren.htm?zws-id=" + zillowKey + "&state=tx&city=dallas&childtype=neighborhood")
 #content = r.content.decode("utf-8")
@@ -159,4 +171,4 @@ for n in zillown.region:
     neighborhoods.append(neighborhoodScores(googleKey, n.name.cdata, n.latitude.cdata, n.longitude.cdata))
 
 with open('data.json', 'w') as outfile:
-    json.dump(neighborhoods, outfile, cls=ComplexEncoder)
+    json.dump(neighborhoods, outfile, cls=ComplexEncoder)"""
