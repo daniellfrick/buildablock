@@ -9,6 +9,7 @@ import math
 from json import JSONEncoder
 
 locationTypes = ['restaurant', 'bar', 'transit_station', 'park', 'supermarket', 'church', 'mosque', 'coffee_shop', 'gym', 'library']
+locationToLabel = {'restaurant':'Restaurant', 'bar':'Bar', 'transit_station':'Transit Station', 'park': 'Park', 'supermarket': 'Supermarket', 'church': 'Church', 'mosque': 'Mosque', 'coffee_shop': 'Coffee Shop', 'gym': 'Gym', 'library': 'Library'}
 #locationTypes = ['coffee shop']
 
 
@@ -29,6 +30,21 @@ class Neighborhood:
 
     def __str__(self):
         return self.name + " " + str(self.latitude) + " " + str(self.longitude)
+
+    def reprJSON(self):
+        return self.__dict__
+
+
+class Location:
+    def __init__(self, label, name, dist, rating, address):
+        self.label = label
+        self.name = name
+        self.dist = dist
+        self.rating = rating
+        self.address = address
+
+    def __str__(self):
+        return self.label + ": " + self.name + " " + str(self.dist) + "km away. At " + self.address + ", " + str(self.rating) + " stars."
 
     def reprJSON(self):
         return self.__dict__
@@ -78,14 +94,15 @@ def evaluate(gameState):
             score['subscores'] = []
 
             for i in d_dis:
-                if dis[i] > d_dis[i]:
-                    # print(dis[i])
-                    # print(d_dis[i])
-                    num = abs(d_dis[i] - 6) * abs(math.log((float(dis[i]) - d_dis[i] + .1)) / 3)
-                    score['total'] = score['total'] - num
-                    score['subscores'].append((i, 10 - num))
-                else:
-                    score['subscores'].append((i, 10))
+                if i != 'apartment' and i != 'street':
+                    if dis[i]['dist'] > d_dis[i]:
+                        # print(dis[i])
+                        # print(d_dis[i])
+                        num = abs(d_dis[i] - 6) * abs(math.log((float(dis[i]['dist']) - d_dis[i] + .1)) / 3)
+                        score['total'] = score['total'] - num
+                        score['subscores'].append([dis[i]['label'], 10-num, dis[i]['name'], dis[i]['rating'], dis[i]['dist'], dis[i]['address']])
+                    else:
+                        score['subscores'].append([dis[i]['label'], 10, dis[i]['name'], dis[i]['rating'], dis[i]['dist'], dis[i]['address']])
             scores.append((score, n['name']))
     return scores
 
@@ -107,7 +124,7 @@ def placesSearch(key, location, loctype, radius=5000):
             dist = geopy.distance.distance(location, destloc).km
             if closestloc[0] is None:
                 closestloc = (result, dist)
-            elif dist < closestloc[1]:
+            elif dist < closestloc[1] and result['rating'] > 3:
                 closestloc = (result, dist)
         #time.sleep(1)
         try:
@@ -123,7 +140,9 @@ def placesSearch(key, location, loctype, radius=5000):
 def neighborhoodScores(key, name, lat, long):
     neighborhood = Neighborhood(name, lat, long)
     for loc_type in locationTypes:
-        neighborhood.scores[loc_type] = placesSearch(key, (neighborhood.latitude, neighborhood.longitude), loc_type)[1]
+        closestloc = placesSearch(key, (neighborhood.latitude, neighborhood.longitude), loc_type)
+        neighborhood.scores[loc_type] = Location(locationToLabel[loc_type], closestloc[0]['name'], round(closestloc[1], 2), closestloc[0]['rating'], closestloc[0]['formatted_address'])
+        #print(neighborhood.scores[loc_type])
     return neighborhood
 
 
@@ -141,7 +160,7 @@ def loadNeighborhoods():
 
 googleKey = "AIzaSyCJ0jtUgY5aGjEPy9BGvgHS-Hs0vE6PEDo"
 
-"""gmaps = googlemaps.Client(key=key)
+"""gmaps = googlemaps.Client(key=googleKey)
 
 place_result = gmaps.places(query='', type='', location=(32.984971, -96.753445), radius=10000)
 for x in place_result['results']:
@@ -161,10 +180,10 @@ neighborhoods = []
 
 n = zillown.region[0]
 
-temp = neighborhoodScores(googleKey, n.name.cdata, n.latitude.cdata, n.longitude.cdata)
+#temp = neighborhoodScores(googleKey, n.name.cdata, n.latitude.cdata, n.longitude.cdata)
 
-with open('test.json', 'w') as outfile:
-    json.dump(temp, outfile, cls=ComplexEncoder)
+#with open('test.json', 'w') as outfile:
+#    json.dump(temp, outfile, cls=ComplexEncoder)
 
 for n in zillown.region:
     print(n.name.cdata)

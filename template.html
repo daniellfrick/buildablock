@@ -1,7 +1,69 @@
+<!DOCTYPE html>
 <html>
-    <body>
+	<head>
+	<style>
+		.dropdown {
+		  position: relative;
+		  background-color: #fec2bc;
+		  padding-left: 30px;
+		  box-shadow: 7px 5px 1px -2px #d9928b;
+		  color: #807d8c;
+		  font-family: 'Arial', Helvetica, sans-serif;
+		  width: 50vw;
+		}
+
+		.dropdown-content {
+		  display: none;
+		  position: absolute;
+		  background-color: #d7d0ee;
+		  min-width: 160px;
+		  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+		  padding: 6px 16px;
+		  z-index: 1;
+		}
+		
+		.clicked.dropdown .dropdown-content {
+			display: block;
+			position:relative;
+		}
+		
+		.clicked.dropdown {
+			padding-bottom: 30px;
+			padding-right: 30px;
+		}
+
+		.subtype-head {
+			font-weight: bold;
+		}
+	</style>
+	</head>
+	
+    <body style="background-color: #fffae8">
+		<div style="padding-top: 5px; font-family: 'Impact', Charcoal, sans-serif; font-size: 9em; color: #d7d0ee; text-shadow: 2px 2px 0px #fec2bc;"><img src="https://i.imgur.com/8zBfTvq.png" alt="logo">Build-A-Block</div>
+		
         {{#each hoods}}
-        <h2>{{hood}}: {{score}}: {{subscores}}</h2>
-        {{/each}}
+        <div class="dropdown"><h1 class="dropdown-title">{{hood}}: {{score}}</h1>
+			<div class="dropdown-content">
+			{{# each subscores}}
+				<p class="subtype-head">Closest {{location_type}}:</p>
+				<p>{{name}}, {{dist}}km.</p>
+				<p>{{address}}. {{rating}}☆</p>
+			{{/each}}
+			</div>
+		</div>{{/each}}
     </body>
+	
+	<script>
+		var dropdowns = document.getElementsByClassName("dropdown-title");
+		for (dropdown of dropdowns) {
+			dropdown.addEventListener("click", displayClicked, null);
+		}
+		function displayClicked(ev) {
+			var element = ev.target.parentElement;
+			if (element.className == "dropdown clicked")
+				element.className = "dropdown";
+			else
+				element.className +=" clicked";
+		}
+	</script>
 </html>

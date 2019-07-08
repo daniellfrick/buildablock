@@ -3,7 +3,7 @@ import json
 
 from flask import Flask, request
 
-# Get a compiler
+# Get a compilerpip
 from pybars import Compiler
 compiler = Compiler()
 
@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 data_index = 0
 data = {}
-url="localhost:5000/"
+url="shanemendez.com:5000/"
 
 @app.route("/get/neighborhood", methods=['POST'])
 def neighborhood():
@@ -39,7 +39,7 @@ def neighborhood():
         scores.sort(reverse=True, key=lambda x:x[0]['total'])
         print(str(maxScore) + "  " + bestHood)
         data_index += 1
-        scores = list(map(lambda x: {'hood': x[1], 'score': x[0]['total'], 'subscores': x[0]['subscores']}, scores))
+        scores = list(map(lambda x: {'hood': x[1], 'score': round(x[0]['total'],1), 'subscores': list(map(lambda y: {'location_type': y[0], 'subscore': y[1], 'name': y[2], 'rating': y[3], 'dist': y[4], 'address': y[5]}, x[0]['subscores']))}, scores))
         data[str(data_index)] = {'hoods': scores}
         return url + str(data_index)
 
